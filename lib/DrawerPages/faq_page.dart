@@ -72,6 +72,7 @@ class _FaqPageState extends State<FaqPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: AppTheme.primaryColor,
         title: Text(
           getTranslated(context,Strings.FAQS)!,
@@ -94,40 +95,51 @@ class _FaqPageState extends State<FaqPage> {
                 ),
               ),
               SizedBox(height: 20),
-              ruleList.length>0?Container(
-                color: theme.backgroundColor,
-                padding: EdgeInsets.only(top: 16),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: ruleList.length,
-                  physics: NeverScrollableScrollPhysics(),
-                  itemBuilder: (context, index) =>    Container(
-                    decoration: boxDecoration(radius: 10,showShadow: true),
-                    margin: EdgeInsets.all(getWidth(10)),
-                    child: ExpansionTile(
-                      tilePadding:
-                      EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                      title: Text(
-                        getString1(ruleList[index].title),
-                        style: theme.textTheme.headline6,
-                      ),
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                          child: Text(getString1(ruleList[index].description)),
-                        )
-                      ],
-                      expandedAlignment:Alignment.centerLeft ,
-                      trailing: Icon(
-                        Icons.keyboard_arrow_down,
-                        color: theme.primaryColor,
-                        size: 20,
+        ruleList.length > 0
+            ? Container(
+          color: theme.backgroundColor,
+          padding: EdgeInsets.only(top: 16),
+          child: ListView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            itemCount: ruleList.length,
+            itemBuilder: (context, index) => Container(
+              decoration: boxDecoration(radius: 10, showShadow: true),
+              margin: EdgeInsets.all(getWidth(10)),
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  dividerColor: Colors.transparent, // Remove the top and bottom lines
+                ),
+                child: ExpansionTile(
+                  tilePadding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                  title: Text(
+                    getString1(ruleList[index].title),
+                    style: theme.textTheme.headline6,
+                  ),
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      child: Text(
+                        getString1(ruleList[index].description),
                       ),
                     ),
+                  ],
+                  expandedAlignment: Alignment.centerLeft,
+                  trailing: Icon(
+                    Icons.keyboard_arrow_down,
+                    color: theme.primaryColor,
+                    size: 20,
                   ),
                 ),
-              ):Center(child: CircularProgressIndicator(),)
-            ],
+              ),
+            ),
+          ),
+        )
+            : Center(
+          child: CircularProgressIndicator(),
+        )
+
+        ],
           ),
         ),
         beginOffset: Offset(0, 0.3),

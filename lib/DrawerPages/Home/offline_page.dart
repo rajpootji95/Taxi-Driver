@@ -7,6 +7,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:why_taxi_driver/DrawerPages/plan_screen.dart';
 import 'package:why_taxi_driver/Theme/style.dart';
+import 'package:why_taxi_driver/utils/colors.dart';
 import 'package:why_taxi_driver/utils/new_utils/ui.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:why_taxi_driver/BookRide/complete_ride_dialog.dart';
@@ -75,7 +76,7 @@ class _OfflinePageState extends State<OfflinePage>  with WidgetsBindingObserver{
     PushNotificationService notificationService = new PushNotificationService(
         context: context,
         onResult: (result) {
-          print("boook" + result.toString());
+          print("book" + result.toString());
 
           if (result != null) {
             if (result == "yes") {
@@ -806,917 +807,976 @@ class _OfflinePageState extends State<OfflinePage>  with WidgetsBindingObserver{
     fontWeight: FontWeight.w700,
     fontFamily: 'Inter',
   );
+  bool _isLoading = false;
 
+  Future<void> refreshData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await getLocation();
+      await getProfile();
+      await getTodayInfo();
+      await getSetting();
+      await getCount();
+      await getBookInfo();
+    } catch (e) {
+      // Handle any errors here
+      print(e);
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: _drawerKey,
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        centerTitle: false,
-        backgroundColor: AppTheme.primaryColor,
-        title: Text(
-          getTranslated(context, "TAKE_RIDE")!,
-          style: TextStyle(
-            color: Colors.white,
-          ),
-        ),
-        actions: [
-          UI.commonIconButton(
-            message: "Refresh",
-            iconData: Icons.refresh,
-            onPressed: () async {
-              await getLocation();
-              await  getProfile();
-              await getTodayInfo();
-              await getSetting();
-              await getCount();
-              await  getBookInfo();
-            },
-          ),
-          InkWell(
-            onTap: () async {
-              var result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => PlanScreen()));
-              if (result != null) {
-
-              }
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: Image.asset(
-                Assets.subscription,
-                height: 24,
-                width: 24,
-              ),
+    return WillPopScope(
+      onWillPop: () => _onBackPressed(context),
+      child: Scaffold(
+        key: _drawerKey,
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          centerTitle: false,
+          backgroundColor: AppTheme.primaryColor,
+          title: Text(
+            getTranslated(context, "TAKE_RIDE")!,
+            style: TextStyle(
+              color: Colors.white,
             ),
           ),
-          // UI.commonIconButton(
-          //   message: "Subscriptions",
-          //   iconData: Icons.subscriptions,
-          //   onPressed: ()async {
-          //     var result = await Navigator.push(
-          //         context,
-          //         MaterialPageRoute(
-          //             builder: (context) => PlanScreen()));
-          //     if (result != null) {
-          //
-          //     }
-          //   },
-          // ),
-          Stack(
-            alignment: Alignment.topRight,
-            children: [
-              UI.commonIconButton(
-                message: "Notifications",
-                iconData: Icons.notifications_active,
-                onPressed: ()async {
-                  var result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => NotificationScreen()));
-                  if (result != null) {
-                    if (result == "yes") {
-                      setState(() {
-                        count = "0";
-                      });
-                      return;
-                    }
-                    getBookingInfo(result);
-                  }
-                },
+          actions: [
+            _isLoading ? SizedBox():  UI.commonIconButton(
+              message: "Refresh",
+              iconData: _isLoading ?Icons.refresh : Icons.refresh,
+              onPressed: _isLoading ? null : refreshData,
+            ),
+            if (_isLoading)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                  height: 20,
+                  width: 20,
+                  color: MyColorName.primaryDark,
+                  child: Center(
+                    child: CircularProgressIndicator(color: MyColorName.colorBg2,),
+                  ),
+                ),
               ),
-              count != "0"
-                  ? Container(
-                width: getWidth(18),
-                height: getWidth(18),
-                margin: EdgeInsets.only(
-                    right: getWidth(3), top: getHeight(3)),
-                decoration:
-                boxDecoration(radius: 100, bgColor: Colors.red),
-                child: Center(
-                    child: text(count.toString(),
-                        fontFamily: fontMedium,
-                        fontSize: 6.sp,
-                        textColor: Colors.white)),
-              )
-                  : SizedBox(),
-            ],
-          ),
-        ],
-        bottom: PreferredSize(
-          preferredSize: Size(
-            100.w,
-            getHeight(50),
-          ),
-          child: ListTile(
-            onTap: () async {
-              var result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => MyRidesPage(
-                          selected: true,
-                        )),
-              );
-              if (result != null) {
-                getBookInfo();
-              }
-            },
-            contentPadding: EdgeInsets.symmetric(horizontal: 10),
-            leading: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: image != ""
-                    ? Image.network(
-                        image,
-                        width: getWidth(60),
-                        height: getWidth(60),
-                        fit: BoxFit.fill,
-                        colorBlendMode: profileStatus == "0"
-                            ? BlendMode.hardLight
-                            : BlendMode.color,
-                        color: profileStatus == "0"
-                            ? Colors.white.withOpacity(0.4)
-                            : Colors.transparent,
-                      )
-                    : SizedBox()),
-            /*Image.asset('assets/delivery_boy.png'),*/
-            title: Text('${totalRide} ' +
-                getTranslated(context, Strings.RIDES)!.toUpperCase() +
-                ' | \u{20B9}${totalAmount}',style: TextStyle(color: Colors.white,),),
-            subtitle: Text(getTranslated(context, Strings.TODAY)!,style: TextStyle(color: Colors.white,),),
+            InkWell(
+              onTap: () async {
+                var result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => PlanScreen()));
+                if (result != null) {
+
+                }
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Image.asset(
+                  Assets.subscription,
+                  height: 24,
+                  width: 24,
+                ),
+              ),
+            ),
+            // UI.commonIconButton(
+            //   message: "Subscriptions",
+            //   iconData: Icons.subscriptions,
+            //   onPressed: ()async {
+            //     var result = await Navigator.push(
+            //         context,
+            //         MaterialPageRoute(
+            //             builder: (context) => PlanScreen()));
+            //     if (result != null) {
+            //
+            //     }
+            //   },
+            // ),
+            Stack(
+              alignment: Alignment.topRight,
+              children: [
+                UI.commonIconButton(
+                  message: "Notifications",
+                  iconData: Icons.notifications_active,
+                  onPressed: ()async {
+                    var result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => NotificationScreen()));
+                    if (result != null) {
+                      if (result == "yes") {
+                        setState(() {
+                          count = "0";
+                        });
+                        return;
+                      }
+                      getBookingInfo(result);
+                    }
+                  },
+                ),
+                count != "0"
+                    ? Container(
+                  width: getWidth(18),
+                  height: getWidth(18),
+                  margin: EdgeInsets.only(
+                      right: getWidth(3), top: getHeight(3)),
+                  decoration:
+                  boxDecoration(radius: 100, bgColor: Colors.red),
+                  child: Center(
+                      child: text(count.toString(),
+                          fontFamily: fontMedium,
+                          fontSize: 6.sp,
+                          textColor: Colors.white)),
+                )
+                    : SizedBox(),
+              ],
+            ),
+          ],
+          bottom: PreferredSize(
+            preferredSize: Size(
+              100.w,
+              getHeight(50),
+            ),
+            child: ListTile(
+              onTap: () async {
+                var result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => MyRidesPage(
+                            selected: true,
+                          )),
+                );
+                if (result != null) {
+                  getBookInfo();
+                }
+              },
+              contentPadding: EdgeInsets.symmetric(horizontal: 10),
+              leading: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: image != ""
+                      ? Image.network(
+                          image,
+                          width: getWidth(60),
+                          height: getWidth(60),
+                          fit: BoxFit.fill,
+                          colorBlendMode: profileStatus == "0"
+                              ? BlendMode.hardLight
+                              : BlendMode.color,
+                          color: profileStatus == "0"
+                              ? Colors.white.withOpacity(0.4)
+                              : Colors.transparent,
+                        )
+                      : SizedBox()),
+              /*Image.asset('assets/delivery_boy.png'),*/
+              title: Text('${totalRide} ' +
+                  getTranslated(context, Strings.RIDES)!.toUpperCase() +
+                  ' | \u{20B9}${totalAmount}',style: TextStyle(color: Colors.white,),),
+              subtitle: Text(getTranslated(context, Strings.TODAY)!,style: TextStyle(color: Colors.white,),),
+            ),
           ),
         ),
-      ),
-      drawer: AppDrawer(
-        onResult: (result) {
-          if (result != null) {
-            setState(() {
-              saveStatus = false;
-            });
-            getLocation();
-            getProfile();
-            getTodayInfo();
-            getBookInfo();
-          }
-        },
-      ),
-      body: WillPopScope(
-        onWillPop: onWill,
-        child: SafeArea(
-          child: latitude != 0
-              ? Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    MapPage(
-                      false,
-                      live: false,
-                      SOURCE_LOCATION: LatLng(latitude, longitude),
-                    ),
-                    bookModel != null
-                        ? Container(
-                            margin: EdgeInsets.all(8.0),
-                            padding: EdgeInsets.all(8.0),
-                            decoration: boxDecoration(
-                                showShadow: true, bgColor: Colors.white),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                    child: Text(
-                                  "You have an already ${bookModel!.bookingType!} ride",
-                                )),
-                                boxWidth(10),
-                                InkWell(
-                                  onTap: () async {
-                                    if (bookModel!.bookingType!
-                                        .toLowerCase()
-                                        .contains("schedule")) {
-                                      var result = await Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) => MyRidesPage(
-                                                    selected: false,
-                                                  )));
-                                      if (result != null) {
-                                        getBookInfo();
+        drawer: AppDrawer(
+          onResult: (result) {
+            if (result != null) {
+              setState(() {
+                saveStatus = false;
+              });
+              getLocation();
+              getProfile();
+              getTodayInfo();
+              getBookInfo();
+            }
+          },
+        ),
+        body: WillPopScope(
+          onWillPop: onWill,
+          child: SafeArea(
+            child: latitude != 0
+                ? Stack(
+                    alignment: Alignment.bottomCenter,
+                    children: [
+                      MapPage(
+                        false,
+                        live: false,
+                        SOURCE_LOCATION: LatLng(latitude, longitude),
+                      ),
+                      bookModel != null
+                          ? Container(
+                              margin: EdgeInsets.all(8.0),
+                              padding: EdgeInsets.all(8.0),
+                              decoration: boxDecoration(
+                                  showShadow: true, bgColor: Colors.white),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                      child: Text(
+                                    "You have an already ${bookModel!.bookingType!} ride",
+                                  )),
+                                  boxWidth(10),
+                                  InkWell(
+                                    onTap: () async {
+                                      if (bookModel!.bookingType!
+                                          .toLowerCase()
+                                          .contains("schedule")) {
+                                        var result = await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) => MyRidesPage(
+                                                      selected: false,
+                                                    )));
+                                        if (result != null) {
+                                          getBookInfo();
+                                        }
+                                      } else if (bookModel!.bookingType!
+                                          .toLowerCase()
+                                          .contains("intercity")) {
+                                        var result1 = await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    IntercityRides(
+                                                      selected: false,
+                                                    )));
+                                        if (result1 != null) {
+                                          getBookInfo();
+                                        }
+                                      } else {
+                                        var result2 = await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) => RentalRides(
+                                                      selected: false,
+                                                    )));
+                                        if (result2 != null) {
+                                          getBookInfo();
+                                        }
                                       }
-                                    } else if (bookModel!.bookingType!
-                                        .toLowerCase()
-                                        .contains("intercity")) {
-                                      var result1 = await Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  IntercityRides(
-                                                    selected: false,
-                                                  )));
-                                      if (result1 != null) {
-                                        getBookInfo();
-                                      }
-                                    } else {
-                                      var result2 = await Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) => RentalRides(
-                                                    selected: false,
-                                                  )));
-                                      if (result2 != null) {
-                                        getBookInfo();
-                                      }
-                                    }
-                                  },
-                                  child: Container(
-                                    width: 30.w,
-                                    height: 5.h,
-                                    decoration: boxDecoration(
-                                        radius: 5,
-                                        bgColor:
-                                            Theme.of(context).primaryColor),
-                                    child: Center(
-                                        child: text(
-                                            getTranslated(context, "VIEW") !=
-                                                    null
-                                                ? getTranslated(
-                                                    context, "VIEW")!
-                                                : "View",
-                                            fontFamily: fontMedium,
-                                            fontSize: 10.sp,
-                                            isCentered: true,
-                                            textColor: Colors.white)),
+                                    },
+                                    child: Container(
+                                      width: 30.w,
+                                      height: 5.h,
+                                      decoration: boxDecoration(
+                                          radius: 5,
+                                          bgColor:
+                                              Theme.of(context).primaryColor),
+                                      child: Center(
+                                          child: text(
+                                              getTranslated(context, "VIEW") !=
+                                                      null
+                                                  ? getTranslated(
+                                                      context, "VIEW")!
+                                                  : "View",
+                                              fontFamily: fontMedium,
+                                              fontSize: 10.sp,
+                                              isCentered: true,
+                                              textColor: Colors.white)),
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : SizedBox(),
-                    model != null
-                        ? Card(
-                            margin: EdgeInsets.all(8.0),
-                            child: SingleChildScrollView(
-                              child: Container(
-                                padding: EdgeInsets.all(getWidth(15)),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    text("Ride Info",
-                                        fontSize: 10.sp,
-                                        fontFamily: fontMedium,
-                                        textColor: Colors.black),
-                                    Divider(),
-                                    boxHeight(5),
-                                    Row(
-                                      children: [
-                                        Container(
-                                          height: 10,
-                                          width: 10,
-                                          decoration: boxDecoration(
-                                              radius: 100,
-                                              bgColor: Colors.green),
-                                        ),
-                                        boxWidth(10),
-                                        Expanded(
-                                            child: text(
-                                                model!.pickupAddress.toString(),
-                                                fontSize: 9.sp,
-                                                fontFamily: fontRegular,
-                                                textColor: Colors.black)),
-                                      ],
-                                    ),
-                                    boxHeight(5),
-                                    model!.dropAddress != null
-                                        ? Row(
-                                            children: [
-                                              Container(
-                                                height: 10,
-                                                width: 10,
-                                                decoration: boxDecoration(
-                                                    radius: 100,
-                                                    bgColor: Colors.red),
-                                              ),
-                                              boxWidth(10),
-                                              Expanded(
-                                                  child: text(
-                                                      model!.dropAddress
-                                                          .toString(),
-                                                      fontSize: 9.sp,
-                                                      fontFamily: fontRegular,
-                                                      textColor: Colors.black)),
-                                            ],
-                                          )
-                                        : SizedBox(),
-                                    boxHeight(5),
-                                    Divider(),
-                                    boxHeight(5),
-                                    model!.bookingType
-                                            .toString()
-                                            .contains("Rental Booking")
-                                        ? SizedBox.shrink()
-                                        : Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              text("Payment Mode : ",
-                                                  fontSize: 10.sp,
-                                                  fontFamily: fontMedium,
-                                                  textColor: Colors.black),
-                                              text(
-                                                  model!.transaction.toString(),
-                                                  fontSize: 10.sp,
-                                                  fontFamily: fontMedium,
-                                                  textColor: Colors.black),
-                                            ],
-                                          ),
-                                    boxHeight(5),
-                                    !model!.bookingType
-                                            .toString()
-                                            .contains("Point")
-                                        ? AnimatedTextKit(
-                                            animatedTexts: [
-                                              ColorizeAnimatedText(
-                                                model!.bookingType
-                                                        .toString()
-                                                        .contains(
-                                                            "Rental Booking")
-                                                    ? "Rental Booking - ${model!.start_time} - ${model!.end_time}"
-                                                    : "Schedule - ${model!.pickupDate} ${model!.pickupTime}",
-                                                textStyle: colorizeTextStyle,
-                                                colors: colorizeColors,
-                                              ),
-                                            ],
-                                            pause: Duration(milliseconds: 100),
-                                            isRepeatingAnimation: true,
-                                            totalRepeatCount: 100,
-                                            onTap: () {
-                                              print("Tap Event");
-                                            },
-                                          )
-                                        : SizedBox(),
-                                    boxHeight(5),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        text("Ride Type : ",
-                                            fontSize: 10.sp,
-                                            fontFamily: fontMedium,
-                                            textColor: Colors.black),
-                                        text(model!.bookingType.toString(),
-                                            fontSize: 10.sp,
-                                            fontFamily: fontMedium,
-                                            textColor: Colors.black),
-                                      ],
-                                    ),
-                                    boxHeight(5),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        text(
-                                            "${getTranslated(context, "Earningamount")!} : ",
-                                            fontSize: 10.sp,
-                                            fontFamily: fontMedium,
-                                            textColor: Colors.black),
-                                        text("₹" + model!.paidAmount.toString(),
-                                            fontSize: 10.sp,
-                                            fontFamily: fontMedium,
-                                            textColor: Colors.black),
-                                      ],
-                                    ),
-                                    boxHeight(5),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        text(
-                                            model!.bookingType
-                                                    .toString()
-                                                    .contains("Rental Booking")
-                                                ? "Hours : "
-                                                : "Distance : ",
-                                            fontSize: 10.sp,
-                                            fontFamily: fontMedium,
-                                            textColor: Colors.black),
-                                        text(
-                                            model!.bookingType
-                                                    .toString()
-                                                    .contains("Rental Booking")
-                                                ? model!.hours.toString() +
-                                                    " mins"
-                                                : model!.km.toString() + " km",
-                                            fontSize: 10.sp,
-                                            fontFamily: fontMedium,
-                                            textColor: Colors.black),
-                                      ],
-                                    ),
-                                    boxHeight(5),
-                                    /*Row(
-                            mainAxisAlignment:
-                            MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment:
-                            CrossAxisAlignment.start,
-                            children: [
-                              text("Earning Amount ",
-                                  fontSize: 10.sp,
-                                  fontFamily: fontMedium,
-                                  textColor: Colors.black),
-                              text("₹" + model!.paidAmount.toString(),
-                                  fontSize: 10.sp,
-                                  fontFamily: fontMedium,
-                                  textColor: Colors.black),
-                              text("|",
-                                  fontSize: 10.sp,
-                                  fontFamily: fontMedium,
-                                  textColor: Colors.black),
-                              text("Distance ",
-                                  fontSize: 10.sp,
-                                  fontFamily: fontMedium,
-                                  textColor: Colors.black),
-                              text(model!.km.toString() + " km",
-                                  fontSize: 10.sp,
-                                  fontFamily: fontMedium,
-                                  textColor: Colors.black),
-                            ],
-                          ),*/
-                                    Container(
-                                      child: Column(
+                                ],
+                              ),
+                            )
+                          : SizedBox(),
+                      model != null
+                          ? Card(
+                              margin: EdgeInsets.all(8.0),
+                              child: SingleChildScrollView(
+                                child: Container(
+                                  padding: EdgeInsets.all(getWidth(15)),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      text("Ride Info",
+                                          fontSize: 10.sp,
+                                          fontFamily: fontMedium,
+                                          textColor: Colors.black),
+                                      Divider(),
+                                      boxHeight(5),
+                                      Row(
                                         children: [
-                                          double.parse(model!.gstAmount
-                                                      .toString()) >
-                                                  0
-                                              ? Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    text("Sub Total : ",
-                                                        fontSize: 10.sp,
-                                                        fontFamily: fontMedium,
-                                                        textColor:
-                                                            Colors.black),
-                                                    text(
-                                                        "₹" +
-                                                            (double.parse(model!
-                                                                        .amount
-                                                                        .toString()) +
-                                                                    double.parse(model!
-                                                                        .promoDiscount
-                                                                        .toString()) -
-                                                                    double.parse(model!
-                                                                        .gstAmount
-                                                                        .toString()) -
-                                                                    double.parse(model!
-                                                                        .surgeAmount
-                                                                        .toString()))
-                                                                .toStringAsFixed(
-                                                                    2),
-                                                        fontSize: 10.sp,
-                                                        fontFamily: fontMedium,
-                                                        textColor:
-                                                            Colors.black),
-                                                  ],
-                                                )
-                                              : SizedBox(),
-                                          model!.baseFare != null &&
-                                                  model!.baseFare! is double &&
-                                                  double.parse(model!.baseFare
-                                                          .toString()) >
-                                                      0
-                                              ? Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    text("Base fare : ",
-                                                        fontSize: 10.sp,
-                                                        fontFamily: fontRegular,
-                                                        textColor:
-                                                            Colors.black),
-                                                    text(
-                                                        "₹" +
-                                                            model!.baseFare
-                                                                .toString(),
-                                                        fontSize: 10.sp,
-                                                        fontFamily: fontRegular,
-                                                        textColor:
-                                                            Colors.black),
-                                                  ],
-                                                )
-                                              : SizedBox(),
-                                          model!.ratePerKm != null &&
-                                                  model!.ratePerKm! is double &&
-                                                  double.parse(model!.km
-                                                          .toString()) >=
-                                                      2 &&
-                                                  double.parse(model!.ratePerKm
-                                                          .toString()
-                                                          .replaceAll(
-                                                              ",", "")) >
-                                                      0
-                                              ? Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    text(
-                                                        "${model!.km.toString()} Kilometers : ",
-                                                        fontSize: 10.sp,
-                                                        fontFamily: fontRegular,
-                                                        textColor:
-                                                            Colors.black),
-                                                    text(
-                                                        "₹" +
-                                                            model!.ratePerKm
-                                                                .toString()
-                                                                .replaceAll(
-                                                                    ",", ""),
-                                                        fontSize: 10.sp,
-                                                        fontFamily: fontRegular,
-                                                        textColor:
-                                                            Colors.black),
-                                                  ],
-                                                )
-                                              : SizedBox(),
-                                          model!.timeAmount != null &&
-                                                  model!.timeAmount!
-                                                      is double &&
-                                                  double.parse(model!.timeAmount
-                                                          .toString()) >
-                                                      0
-                                              ? Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    text(
-                                                        "${model!.totalTime.toString()} Minutes : ",
-                                                        fontSize: 10.sp,
-                                                        fontFamily: fontRegular,
-                                                        textColor:
-                                                            Colors.black),
-                                                    text(
-                                                        "₹" +
-                                                            model!.timeAmount
-                                                                .toString(),
-                                                        fontSize: 10.sp,
-                                                        fontFamily: fontRegular,
-                                                        textColor:
-                                                            Colors.black),
-                                                  ],
-                                                )
-                                              : SizedBox(),
-                                          double.parse(model!.gstAmount
-                                                      .toString()) >
-                                                  0
-                                              ? Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    text("Taxes : ",
-                                                        fontSize: 10.sp,
-                                                        fontFamily: fontMedium,
-                                                        textColor:
-                                                            Colors.black),
-                                                    text(
-                                                        "₹" +
-                                                            model!.gstAmount
-                                                                .toString(),
-                                                        fontSize: 10.sp,
-                                                        fontFamily: fontMedium,
-                                                        textColor:
-                                                            Colors.black),
-                                                  ],
-                                                )
-                                              : SizedBox(),
-                                          double.parse(model!.surgeAmount
-                                                      .toString()) >
-                                                  0
-                                              ? Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    text("Surge Amount : ",
-                                                        fontSize: 10.sp,
-                                                        fontFamily: fontMedium,
-                                                        textColor:
-                                                            Colors.black),
-                                                    text(
-                                                        "₹" +
-                                                            model!.surgeAmount
-                                                                .toString(),
-                                                        fontSize: 10.sp,
-                                                        fontFamily: fontMedium,
-                                                        textColor:
-                                                            Colors.black),
-                                                  ],
-                                                )
-                                              : SizedBox(),
-                                          double.parse(model!.promoDiscount
-                                                      .toString()) >
-                                                  0
-                                              ? Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    text("Promo Discount : ",
-                                                        fontSize: 10.sp,
-                                                        fontFamily: fontMedium,
-                                                        textColor:
-                                                            Colors.black),
-                                                    text(
-                                                        "-₹" +
-                                                            (double.parse(model!
-                                                                    .promoDiscount
-                                                                    .toString()))
-                                                                .toStringAsFixed(
-                                                                    2),
-                                                        fontSize: 10.sp,
-                                                        fontFamily: fontMedium,
-                                                        textColor:
-                                                            Colors.black),
-                                                  ],
-                                                )
-                                              : SizedBox(),
-                                          Divider(),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              text("Total : ",
-                                                  fontSize: 10.sp,
-                                                  fontFamily: fontMedium,
-                                                  textColor: Colors.black),
-                                              text("₹" + "${model!.paidAmount}",
-                                                  fontSize: 10.sp,
-                                                  fontFamily: fontMedium,
-                                                  textColor: Colors.black),
-                                            ],
+                                          Container(
+                                            height: 10,
+                                            width: 10,
+                                            decoration: boxDecoration(
+                                                radius: 100,
+                                                bgColor: Colors.green),
                                           ),
-                                          boxHeight(5),
+                                          boxWidth(10),
+                                          Expanded(
+                                              child: text(
+                                                  model!.pickupAddress.toString(),
+                                                  fontSize: 9.sp,
+                                                  fontFamily: fontRegular,
+                                                  textColor: Colors.black)),
                                         ],
                                       ),
-                                    ),
-                                    boxHeight(5),
-                                    !acceptStatus
-                                        ? Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              InkWell(
-                                                onTap: () {
-                                                  setState(() {
-                                                    acceptStatus = true;
-                                                  });
-                                                  bookingStatus(
-                                                      model!.id.toString(),
-                                                      "2");
-
-                                                  // Navigator.push(context, MaterialPageRoute(builder: (context)=>FindingRidePage()));
-                                                },
-                                                child: Container(
-                                                  width: 30.w,
-                                                  height: 5.h,
+                                      boxHeight(5),
+                                      model!.dropAddress != null
+                                          ? Row(
+                                              children: [
+                                                Container(
+                                                  height: 10,
+                                                  width: 10,
                                                   decoration: boxDecoration(
-                                                      radius: 5,
-                                                      bgColor: Colors.grey),
-                                                  child: Center(
-                                                      child: text("Reject",
-                                                          fontFamily:
-                                                              fontMedium,
-                                                          fontSize: 10.sp,
-                                                          isCentered: true,
-                                                          textColor:
-                                                              Colors.white)),
+                                                      radius: 100,
+                                                      bgColor: Colors.red),
                                                 ),
-                                              ),
-                                              InkWell(
-                                                onTap: () async {
-                                                  if (currentBookingStatus ==
-                                                      true) {
+                                                boxWidth(10),
+                                                Expanded(
+                                                    child: text(
+                                                        model!.dropAddress
+                                                            .toString(),
+                                                        fontSize: 9.sp,
+                                                        fontFamily: fontRegular,
+                                                        textColor: Colors.black)),
+                                              ],
+                                            )
+                                          : SizedBox(),
+                                      boxHeight(5),
+                                      Divider(),
+                                      boxHeight(5),
+                                      model!.bookingType
+                                              .toString()
+                                              .contains("Rental Booking")
+                                          ? SizedBox.shrink()
+                                          : Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                text("Payment Mode : ",
+                                                    fontSize: 10.sp,
+                                                    fontFamily: fontMedium,
+                                                    textColor: Colors.black),
+                                                text(
+                                                    model!.transaction.toString(),
+                                                    fontSize: 10.sp,
+                                                    fontFamily: fontMedium,
+                                                    textColor: Colors.black),
+                                              ],
+                                            ),
+                                      boxHeight(5),
+                                      !model!.bookingType
+                                              .toString()
+                                              .contains("Point")
+                                          ? AnimatedTextKit(
+                                              animatedTexts: [
+                                                ColorizeAnimatedText(
+                                                  model!.bookingType
+                                                          .toString()
+                                                          .contains(
+                                                              "Rental Booking")
+                                                      ? "Rental Booking - ${model!.start_time} - ${model!.end_time}"
+                                                      : "Schedule - ${model!.pickupDate} ${model!.pickupTime}",
+                                                  textStyle: colorizeTextStyle,
+                                                  colors: colorizeColors,
+                                                ),
+                                              ],
+                                              pause: Duration(milliseconds: 100),
+                                              isRepeatingAnimation: true,
+                                              totalRepeatCount: 100,
+                                              onTap: () {
+                                                print("Tap Event");
+                                              },
+                                            )
+                                          : SizedBox(),
+                                      boxHeight(5),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          text("Ride Type : ",
+                                              fontSize: 10.sp,
+                                              fontFamily: fontMedium,
+                                              textColor: Colors.black),
+                                          text(model!.bookingType.toString(),
+                                              fontSize: 10.sp,
+                                              fontFamily: fontMedium,
+                                              textColor: Colors.black),
+                                        ],
+                                      ),
+                                      boxHeight(5),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          text(
+                                              "${getTranslated(context, "Earningamount")!} : ",
+                                              fontSize: 10.sp,
+                                              fontFamily: fontMedium,
+                                              textColor: Colors.black),
+                                          text("₹" + model!.paidAmount.toString(),
+                                              fontSize: 10.sp,
+                                              fontFamily: fontMedium,
+                                              textColor: Colors.black),
+                                        ],
+                                      ),
+                                      boxHeight(5),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          text(
+                                              model!.bookingType
+                                                      .toString()
+                                                      .contains("Rental Booking")
+                                                  ? "Hours : "
+                                                  : "Distance : ",
+                                              fontSize: 10.sp,
+                                              fontFamily: fontMedium,
+                                              textColor: Colors.black),
+                                          text(
+                                              model!.bookingType
+                                                      .toString()
+                                                      .contains("Rental Booking")
+                                                  ? model!.hours.toString() +
+                                                      " mins"
+                                                  : model!.km.toString() + " km",
+                                              fontSize: 10.sp,
+                                              fontFamily: fontMedium,
+                                              textColor: Colors.black),
+                                        ],
+                                      ),
+                                      boxHeight(5),
+                                      /*Row(
+                              mainAxisAlignment:
+                              MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
+                              children: [
+                                text("Earning Amount ",
+                                    fontSize: 10.sp,
+                                    fontFamily: fontMedium,
+                                    textColor: Colors.black),
+                                text("₹" + model!.paidAmount.toString(),
+                                    fontSize: 10.sp,
+                                    fontFamily: fontMedium,
+                                    textColor: Colors.black),
+                                text("|",
+                                    fontSize: 10.sp,
+                                    fontFamily: fontMedium,
+                                    textColor: Colors.black),
+                                text("Distance ",
+                                    fontSize: 10.sp,
+                                    fontFamily: fontMedium,
+                                    textColor: Colors.black),
+                                text(model!.km.toString() + " km",
+                                    fontSize: 10.sp,
+                                    fontFamily: fontMedium,
+                                    textColor: Colors.black),
+                              ],
+                            ),*/
+                                      Container(
+                                        child: Column(
+                                          children: [
+                                            double.parse(model!.gstAmount
+                                                        .toString()) >
+                                                    0
+                                                ? Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      text("Sub Total : ",
+                                                          fontSize: 10.sp,
+                                                          fontFamily: fontMedium,
+                                                          textColor:
+                                                              Colors.black),
+                                                      text(
+                                                          "₹" +
+                                                              (double.parse(model!
+                                                                          .amount
+                                                                          .toString()) +
+                                                                      double.parse(model!
+                                                                          .promoDiscount
+                                                                          .toString()) -
+                                                                      double.parse(model!
+                                                                          .gstAmount
+                                                                          .toString()) -
+                                                                      double.parse(model!
+                                                                          .surgeAmount
+                                                                          .toString()))
+                                                                  .toStringAsFixed(
+                                                                      2),
+                                                          fontSize: 10.sp,
+                                                          fontFamily: fontMedium,
+                                                          textColor:
+                                                              Colors.black),
+                                                    ],
+                                                  )
+                                                : SizedBox(),
+                                            model!.baseFare != null &&
+                                                    model!.baseFare! is double &&
+                                                    double.parse(model!.baseFare
+                                                            .toString()) >
+                                                        0
+                                                ? Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      text("Base fare : ",
+                                                          fontSize: 10.sp,
+                                                          fontFamily: fontRegular,
+                                                          textColor:
+                                                              Colors.black),
+                                                      text(
+                                                          "₹" +
+                                                              model!.baseFare
+                                                                  .toString(),
+                                                          fontSize: 10.sp,
+                                                          fontFamily: fontRegular,
+                                                          textColor:
+                                                              Colors.black),
+                                                    ],
+                                                  )
+                                                : SizedBox(),
+                                            model!.ratePerKm != null &&
+                                                    model!.ratePerKm! is double &&
+                                                    double.parse(model!.km
+                                                            .toString()) >=
+                                                        2 &&
+                                                    double.parse(model!.ratePerKm
+                                                            .toString()
+                                                            .replaceAll(
+                                                                ",", "")) >
+                                                        0
+                                                ? Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      text(
+                                                          "${model!.km.toString()} Kilometers : ",
+                                                          fontSize: 10.sp,
+                                                          fontFamily: fontRegular,
+                                                          textColor:
+                                                              Colors.black),
+                                                      text(
+                                                          "₹" +
+                                                              model!.ratePerKm
+                                                                  .toString()
+                                                                  .replaceAll(
+                                                                      ",", ""),
+                                                          fontSize: 10.sp,
+                                                          fontFamily: fontRegular,
+                                                          textColor:
+                                                              Colors.black),
+                                                    ],
+                                                  )
+                                                : SizedBox(),
+                                            model!.timeAmount != null &&
+                                                    model!.timeAmount!
+                                                        is double &&
+                                                    double.parse(model!.timeAmount
+                                                            .toString()) >
+                                                        0
+                                                ? Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      text(
+                                                          "${model!.totalTime.toString()} Minutes : ",
+                                                          fontSize: 10.sp,
+                                                          fontFamily: fontRegular,
+                                                          textColor:
+                                                              Colors.black),
+                                                      text(
+                                                          "₹" +
+                                                              model!.timeAmount
+                                                                  .toString(),
+                                                          fontSize: 10.sp,
+                                                          fontFamily: fontRegular,
+                                                          textColor:
+                                                              Colors.black),
+                                                    ],
+                                                  )
+                                                : SizedBox(),
+                                            double.parse(model!.gstAmount
+                                                        .toString()) >
+                                                    0
+                                                ? Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      text("Taxes : ",
+                                                          fontSize: 10.sp,
+                                                          fontFamily: fontMedium,
+                                                          textColor:
+                                                              Colors.black),
+                                                      text(
+                                                          "₹" +
+                                                              model!.gstAmount
+                                                                  .toString(),
+                                                          fontSize: 10.sp,
+                                                          fontFamily: fontMedium,
+                                                          textColor:
+                                                              Colors.black),
+                                                    ],
+                                                  )
+                                                : SizedBox(),
+                                            double.parse(model!.surgeAmount
+                                                        .toString()) >
+                                                    0
+                                                ? Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      text("Surge Amount : ",
+                                                          fontSize: 10.sp,
+                                                          fontFamily: fontMedium,
+                                                          textColor:
+                                                              Colors.black),
+                                                      text(
+                                                          "₹" +
+                                                              model!.surgeAmount
+                                                                  .toString(),
+                                                          fontSize: 10.sp,
+                                                          fontFamily: fontMedium,
+                                                          textColor:
+                                                              Colors.black),
+                                                    ],
+                                                  )
+                                                : SizedBox(),
+                                            double.parse(model!.promoDiscount
+                                                        .toString()) >
+                                                    0
+                                                ? Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      text("Promo Discount : ",
+                                                          fontSize: 10.sp,
+                                                          fontFamily: fontMedium,
+                                                          textColor:
+                                                              Colors.black),
+                                                      text(
+                                                          "-₹" +
+                                                              (double.parse(model!
+                                                                      .promoDiscount
+                                                                      .toString()))
+                                                                  .toStringAsFixed(
+                                                                      2),
+                                                          fontSize: 10.sp,
+                                                          fontFamily: fontMedium,
+                                                          textColor:
+                                                              Colors.black),
+                                                    ],
+                                                  )
+                                                : SizedBox(),
+                                            Divider(),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                text("Total : ",
+                                                    fontSize: 10.sp,
+                                                    fontFamily: fontMedium,
+                                                    textColor: Colors.black),
+                                                text("₹" + "${model!.paidAmount}",
+                                                    fontSize: 10.sp,
+                                                    fontFamily: fontMedium,
+                                                    textColor: Colors.black),
+                                              ],
+                                            ),
+                                            boxHeight(5),
+                                          ],
+                                        ),
+                                      ),
+                                      boxHeight(5),
+                                      !acceptStatus
+                                          ? Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                InkWell(
+                                                  onTap: () {
                                                     setState(() {
                                                       acceptStatus = true;
-                                                      condition = true;
                                                     });
                                                     bookingStatus(
                                                         model!.id.toString(),
-                                                        "1");
-                                                  } else {
-                                                    setState(() {
-                                                      condition = true;
-                                                      model = null;
-                                                    });
-                                                    setSnackbar(
-                                                        "Ride is Cancelled by User",
-                                                        context);
-                                                    print("CANCELLED");
-                                                  }
-                                                },
-                                                child: Container(
-                                                  width: 30.w,
-                                                  height: 5.h,
-                                                  decoration: boxDecoration(
-                                                      radius: 5,
-                                                      bgColor: Theme.of(context)
-                                                          .primaryColor),
-                                                  child: Center(
-                                                      child: text("Accept",
-                                                          fontFamily:
-                                                              fontMedium,
-                                                          fontSize: 10.sp,
-                                                          isCentered: true,
-                                                          textColor:
-                                                              Colors.white)),
+                                                        "2");
+
+                                                    // Navigator.push(context, MaterialPageRoute(builder: (context)=>FindingRidePage()));
+                                                  },
+                                                  child: Container(
+                                                    width: 30.w,
+                                                    height: 5.h,
+                                                    decoration: boxDecoration(
+                                                        radius: 5,
+                                                        bgColor: Colors.grey),
+                                                    child: Center(
+                                                        child: text("Reject",
+                                                            fontFamily:
+                                                                fontMedium,
+                                                            fontSize: 10.sp,
+                                                            isCentered: true,
+                                                            textColor:
+                                                                Colors.white)),
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
-                                          )
-                                        : Center(
-                                            child: CircularProgressIndicator(),
-                                          ),
-                                  ],
+                                                InkWell(
+                                                  onTap: () async {
+                                                    if (currentBookingStatus ==
+                                                        true) {
+                                                      setState(() {
+                                                        acceptStatus = true;
+                                                        condition = true;
+                                                      });
+                                                      bookingStatus(
+                                                          model!.id.toString(),
+                                                          "1");
+                                                    } else {
+                                                      setState(() {
+                                                        condition = true;
+                                                        model = null;
+                                                      });
+                                                      setSnackbar(
+                                                          "Ride is Cancelled by User",
+                                                          context);
+                                                      print("CANCELLED");
+                                                    }
+                                                  },
+                                                  child: Container(
+                                                    width: 30.w,
+                                                    height: 5.h,
+                                                    decoration: boxDecoration(
+                                                        radius: 5,
+                                                        bgColor: Theme.of(context)
+                                                            .primaryColor),
+                                                    child: Center(
+                                                        child: text("Accept",
+                                                            fontFamily:
+                                                                fontMedium,
+                                                            fontSize: 10.sp,
+                                                            isCentered: true,
+                                                            textColor:
+                                                                Colors.white)),
+                                                  ),
+                                                ),
+                                              ],
+                                            )
+                                          : Center(
+                                              child: CircularProgressIndicator(),
+                                            ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          )
-                        : SizedBox(),
-                  ],
-                )
-              : Center(child: CircularProgressIndicator()),
+                            )
+                          : SizedBox(),
+                    ],
+                  )
+                : Center(child: CircularProgressIndicator()),
+          ),
         ),
-      ),
-      bottomNavigationBar: Container(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            boxHeight(5),
-            Card(
-              elevation: 6,
-              child: Container(
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: Colors.white),
-                padding: EdgeInsets.all(5.0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: dataList.map((e) {
-                    int i = dataList.indexWhere((element) => element == e);
-                    return InkWell(
-                      onTap: () {
-                        if (i == 2 && homeAddress == "") {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => AddressScreen()),
-                          );
-
-                          setSnackbar("Please Add Address First", context);
-                          return;
-                        }
-                        setState(() {
-                          current = i;
-                        });
-                        if (current == 0) {
-                          updateStatus("1");
-                        } else if (current == 2) {
-                          updateStatus("3");
-                        } else {
-                          updateStatus("2");
-                        }
-                      },
-                      child: Row(
-                        children: [
-                          Container(
-                            color:
-                                i == current ? AppTheme.primaryColor : Colors.white,
-                            padding: EdgeInsets.all(getWidth(5)),
-                            child: Text(e,
-                                style: TextStyle(
-                                  color: i != current
-                                      ? AppTheme.primaryColor
-                                      : Colors.white,
-                                  fontSize: 16.0,
-                                )),
-                          ),
-                          e != "Offline"
-                              ? Container(height: 10, child: VerticalDivider())
-                              : SizedBox(),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-            boxHeight(5),
-            Material(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                elevation: 5,
+        bottomNavigationBar: Container(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              boxHeight(5),
+              Card(
+                elevation: 6,
                 child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 8, vertical: getHeight(10)),
-                    margin: EdgeInsets.symmetric(horizontal: 8),
-                    child: walletAccount != "" &&
-                            double.parse(walletAccount) < minimumBal
-                        ? InkWell(
-                            onTap: () async {
-                              var result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => WalletPage()),
-                              );
-                              if (result != null) {
-                                setState(() {
-                                  saveStatus = false;
-                                });
-                                getLocation();
-                                getProfile();
-                                getTodayInfo();
-                                getBookInfo();
-                              }
-                            },
-                            child: Container(
-                              margin: EdgeInsets.only(
-                                  top: getHeight(5), bottom: getHeight(10)),
-                              width: getWidth(350),
-                              child: text(
-                                  "Note-You need to add minimum \u{20B9}${minimumBal} to get booking request.",
-                                  fontSize: 10.sp,
-                                  fontFamily: fontMedium,
-                                  isCentered: true,
-                                  textColor: Colors.white),
-                            ),
-                          )
-                        : Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Spacer(),
-                              SizedBox(
-                                width: 44,
-                              ),
-                              CircleAvatar(
-                                radius: 5,
-                                backgroundColor:
-                                    current != 1 ? onlineColor : offlineColor,
-                              ),
-                              SizedBox(
-                                width: 12,
-                              ),
-                              GestureDetector(
-                                  onTap: () {
-                                    /*setState(() {
-                                if (current == 0) {
-                                  current = 1;
-                                } else {
-                                  current = 0;
-                                }
-                              });*/
-                                  },
-                                  child: Text(
-                                      current != 1
-                                          ? getTranslated(context,
-                                                  Strings.YOU_RE_ONLINE)!
-                                              .toUpperCase()
-                                          : getTranslated(context,
-                                                  Strings.YOU_RE_OFFLINE)!
-                                              .toUpperCase(),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .subtitle1!
-                                          .copyWith(
-                                              fontWeight: FontWeight.w500,
-                                              letterSpacing: 0.5))),
-                              SizedBox(
-                                width: 45,
-                              ),
-                              Spacer(),
-                            ],
-                          ))),
-            /* walletAccount!=""&&double.parse(walletAccount)<500?InkWell(
-              onTap: (){
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) =>  WalletPage()),
-                );
-              },
-              child: Container(
-                margin: EdgeInsets.only(top: getHeight(5),bottom: getHeight(10)),
-                width: getWidth(350),
-                child: text("Note-You need to add minimum \u{20B9}${minimumBal} to get booking request.",
-                    fontSize: 10.sp,
-                    fontFamily: fontMedium,
-                    isCentered: true,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.white),
+                  padding: EdgeInsets.all(5.0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: dataList.map((e) {
+                      int i = dataList.indexWhere((element) => element == e);
+                      return InkWell(
+                        onTap: () {
+                          if (i == 2 && homeAddress == "") {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => AddressScreen()),
+                            );
 
-                    textColor: Colors.red
+                            setSnackbar("Please Add Address First", context);
+                            return;
+                          }
+                          setState(() {
+                            current = i;
+                          });
+                          if (current == 0) {
+                            updateStatus("1");
+                          } else if (current == 2) {
+                            updateStatus("3");
+                          } else {
+                            updateStatus("2");
+                          }
+                        },
+                        child: Row(
+                          children: [
+                            Container(
+                              color:
+                                  i == current ? AppTheme.primaryColor : Colors.white,
+                              padding: EdgeInsets.all(getWidth(5)),
+                              child: Text(e,
+                                  style: TextStyle(
+                                    color: i != current
+                                        ? AppTheme.primaryColor
+                                        : Colors.white,
+                                    fontSize: 16.0,
+                                  )),
+                            ),
+                            e != "Offline"
+                                ? Container(height: 10, child: VerticalDivider())
+                                : SizedBox(),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
-            ):SizedBox(),*/
-          ],
+              boxHeight(5),
+              Material(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  elevation: 5,
+                  child: Container(
+                      width: MediaQuery.of(context).size.width,
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 8, vertical: getHeight(10)),
+                      margin: EdgeInsets.symmetric(horizontal: 8),
+                      child: walletAccount != "" &&
+                              double.parse(walletAccount) < minimumBal
+                          ? InkWell(
+                              onTap: () async {
+                                var result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => WalletPage()),
+                                );
+                                if (result != null) {
+                                  setState(() {
+                                    saveStatus = false;
+                                  });
+                                  getLocation();
+                                  getProfile();
+                                  getTodayInfo();
+                                  getBookInfo();
+                                }
+                              },
+                              child: Container(
+                                margin: EdgeInsets.only(
+                                    top: getHeight(5), bottom: getHeight(10)),
+                                width: getWidth(350),
+                                child: text(
+                                    "Note-You need to add minimum \u{20B9}${minimumBal} to get booking request.",
+                                    fontSize: 10.sp,
+                                    fontFamily: fontMedium,
+                                    isCentered: true,
+                                    textColor: Colors.white),
+                              ),
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Spacer(),
+                                SizedBox(
+                                  width: 44,
+                                ),
+                                CircleAvatar(
+                                  radius: 5,
+                                  backgroundColor:
+                                      current != 1 ? onlineColor : offlineColor,
+                                ),
+                                SizedBox(
+                                  width: 12,
+                                ),
+                                GestureDetector(
+                                    onTap: () {
+                                      /*setState(() {
+                                  if (current == 0) {
+                                    current = 1;
+                                  } else {
+                                    current = 0;
+                                  }
+                                });*/
+                                    },
+                                    child: Text(
+                                        current != 1
+                                            ? getTranslated(context,
+                                                    Strings.YOU_RE_ONLINE)!
+                                                .toUpperCase()
+                                            : getTranslated(context,
+                                                    Strings.YOU_RE_OFFLINE)!
+                                                .toUpperCase(),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .subtitle1!
+                                            .copyWith(
+                                                fontWeight: FontWeight.w500,
+                                                letterSpacing: 0.5))),
+                                SizedBox(
+                                  width: 45,
+                                ),
+                                Spacer(),
+                              ],
+                            ))),
+              /* walletAccount!=""&&double.parse(walletAccount)<500?InkWell(
+                onTap: (){
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) =>  WalletPage()),
+                  );
+                },
+                child: Container(
+                  margin: EdgeInsets.only(top: getHeight(5),bottom: getHeight(10)),
+                  width: getWidth(350),
+                  child: text("Note-You need to add minimum \u{20B9}${minimumBal} to get booking request.",
+                      fontSize: 10.sp,
+                      fontFamily: fontMedium,
+                      isCentered: true,
+
+                      textColor: Colors.red
+                  ),
+                ),
+              ):SizedBox(),*/
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+
+  Future<bool> _onBackPressed(BuildContext context) async {
+    return await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Confirm Exit'),
+            content: const Text('Are you sure you want to exit?'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Cancel'),
+                onPressed: () {
+
+                  Navigator.of(context).pop(false);
+                },
+              ),
+              TextButton(
+                child: const Text('Exit'),
+                onPressed: () {
+                  // User tapped the exit button, pop the dialog and return true
+                  Navigator.of(context).pop(true);
+                },
+              ),
+            ],
+          );
+        }
     );
   }
 

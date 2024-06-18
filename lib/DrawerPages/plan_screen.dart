@@ -112,6 +112,7 @@ class _PlanScreenState extends State<PlanScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: MyColorName.primaryLite,
         leading: IconButton(
           onPressed: () {
@@ -121,7 +122,7 @@ class _PlanScreenState extends State<PlanScreen> {
             Icons.arrow_back,
           ),
         ),
-        title: Text("Subscriptions"),
+        title: Text("Subscriptions",style: TextStyle(fontSize: 20),),
       ),
       body: Stack(
         alignment: Alignment.center,
@@ -205,7 +206,7 @@ class _PlanScreenState extends State<PlanScreen> {
                                                       .headlineLarge!
                                                       .copyWith(
                                                           color: Colors.white,
-                                                          fontSize: 20.0),
+                                                          fontSize: 18.0),
                                                 ),
                                                 Text(
                                                   " / " + (model.type ?? '0'),

@@ -136,7 +136,7 @@ class _LoginUIState extends State<LoginUI> {
                 padding: EdgeInsets.symmetric(horizontal: 24),
                 child: Text(
                   getTranslated(context, Strings.ENTER_YOUR)! +
-                      '\n' +
+                      ' ' +
                       getTranslated(context, Strings.PHONE_NUMBER)!,
                   style: theme.textTheme.headline4!.copyWith(color: Colors.black),
                 ),

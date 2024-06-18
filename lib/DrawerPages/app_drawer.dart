@@ -198,11 +198,11 @@ class _AppDrawerState extends State<AppDrawer> {
                                     ),
                                     child: Row(
                                       children: [
-                                        Text(rating),
+                                        Text(rating,style: TextStyle(color: MyColorName.colorBg2,),),
                                         SizedBox(width: 4),
                                         Icon(
                                           Icons.star,
-                                          color: AppTheme.starColor,
+                                          color: MyColorName.colorBg2,
                                           size: 14,
                                         )
                                       ],
@@ -504,7 +504,7 @@ class _AppDrawerState extends State<AppDrawer> {
                               child: Text(getTranslated(context, "No")!),
                               style: ButtonStyle(
                                 backgroundColor: MaterialStateProperty.all(
-                                    MyColorName.primaryLite),
+                                    MyColorName.colorMainButton),
                               ),
                               /*  textColor: Theme.of(context).colorScheme.primary,
                               shape: RoundedRectangleBorder(

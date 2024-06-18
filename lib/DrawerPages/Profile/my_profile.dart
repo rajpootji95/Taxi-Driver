@@ -236,7 +236,16 @@ class _MyProfilePageState extends State<MyProfilePage> {
     return Scaffold(
       key: scaffoldKey,
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: AppTheme.primaryColor,
+        title:  Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24),
+          child: Text(
+            getTranslated(context, Strings.MY_PROFILE)!,
+            style: TextStyle(color: MyColorName.colorBg2,fontSize: 20),
+
+          ),
+        ),
       ),
       body: !saveStatus
           ? SingleChildScrollView(
@@ -249,13 +258,13 @@ class _MyProfilePageState extends State<MyProfilePage> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 24),
-                              child: Text(
-                                getTranslated(context, Strings.MY_PROFILE)!,
-                                style: theme.textTheme.headline4,
-                              ),
-                            ),
+                            // Padding(
+                            //   padding: EdgeInsets.symmetric(horizontal: 24),
+                            //   child: Text(
+                            //     getTranslated(context, Strings.MY_PROFILE)!,
+                            //     style: theme.textTheme.headline4,
+                            //   ),
+                            // ),
                             Padding(
                               padding: EdgeInsets.symmetric(
                                   horizontal: 24, vertical: 16),
@@ -267,7 +276,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                               ),
                             ),
                             Container(
-                              margin: EdgeInsets.only(top: 72),
+                              margin: EdgeInsets.only(top: 60),
                               height: 72,
                               color: theme.backgroundColor,
                             ),
@@ -275,7 +284,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                         ),
                         PositionedDirectional(
                           start: 24,
-                          top: 80,
+                          top: 60,
                           child: InkWell(
                             onTap: () {
                               if (profileStatus == "0") {
@@ -743,8 +752,10 @@ class _MyProfilePageState extends State<MyProfilePage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
+                    height: 80,
                     width: getWidth(375),
                     child: CustomButton(
+                      borderRadius: BorderRadius.circular(10),
                       icon: Icons.circle,
                       textColor: profileStatus == "0"
                           ? Colors.yellow
@@ -761,6 +772,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                   ),
                   profileStatus != "0" && profileStatus != "1"
                       ? Container(
+                           height: 80,
                           width: getWidth(375),
                           color: Colors.white,
                           padding: EdgeInsets.all(5),
@@ -771,10 +783,11 @@ class _MyProfilePageState extends State<MyProfilePage> {
                           ))
                       : SizedBox(),
                   Container(
-                    height: 60,
+                    height: 70,
                     width: double.infinity,
                     color: Colors.white,
                     child: CustomButton(
+                      borderRadius: BorderRadius.circular(10),
                       text: getTranslated(context, "Updateprofile")!,
                       color: update
                           ? Theme.of(context).primaryColor

@@ -206,7 +206,9 @@ class _WalletPageState extends State<WalletPage> {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
+          centerTitle: true,
           backgroundColor: AppTheme.primaryColor,
+          title: Text("Wallet",style: TextStyle(color: MyColorName.colorBg1,fontSize: 20),),
           leading: IconButton(
             onPressed: () {
               Navigator.pop(context, true);

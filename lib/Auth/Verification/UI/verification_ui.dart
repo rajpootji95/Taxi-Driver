@@ -22,6 +22,7 @@ import 'package:why_taxi_driver/utils/constant.dart';
 import 'package:why_taxi_driver/utils/widget.dart';
 import 'package:sizer/sizer.dart';
 
+import '../../../Assets/assets.dart';
 import '../../../DrawerPages/Home/offline_page.dart';
 import '../../../Provider/UserProvider.dart';
 import '../../Registration/UI/registration_page.dart';
@@ -54,114 +55,102 @@ class _VerificationUIState extends State<VerificationUI> {
     var theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppTheme.primaryColor,
+        backgroundColor: Colors.transparent,
       ),
-      body:  FadedSlideAnimation(
-            child:
-        Stack(
-          alignment: Alignment.bottomCenter,
+      body:  SingleChildScrollView(
+        child: Column(
+          //crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SingleChildScrollView(
-              child: Container(
-                color: AppTheme.primaryColor,
-                height: MediaQuery.of(context).size.height -
-                    AppBar().preferredSize.height -
-                    MediaQuery.of(context).padding.top +
-                    120,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SizedBox(
-                      height: 12,
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 24),
-                      child: Text(
-                        getTranslated(context, Strings.ENTER)! +
-                            '\n' +
-                            getTranslated(context, Strings.VER_CODE)!,
-                        style: theme.textTheme.headline4!.copyWith(color: Colors.white),
-                      ),
-                    ),
-                    Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      child: Text(
-                        getTranslated(context, Strings.ENTER_CODE_WE)!,
-                        style: theme.textTheme.bodyText2!
-                            .copyWith(color:  Colors.white),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 48,
-                    ),
-                    Expanded(
-                      child: Container(
-                        height: 500,
-                        color: theme.backgroundColor,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Spacer(),
-                            EntryField(
-                              keyboardType: TextInputType.phone,
-                              maxLength: 4,
-                              controller: _otpController,
-                              label:
-                                  getTranslated(context, Strings.ENTER_6_DIGIT)
-                                          .toString() +
-                                      " ${widget.otp}",
-                            ),
-                            Spacer(flex: 5),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+            SizedBox(
+              height: 12,
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: Image.asset(
+                Assets.Logo,
+                height: 150,
+                alignment: AlignmentDirectional.centerStart,
               ),
             ),
+            SizedBox(
+              height: 60,
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                getTranslated(context, Strings.ENTER)! +
+                    ' ' +
+                    getTranslated(context, Strings.VER_CODE)!,
+                style: theme.textTheme.headline4!.copyWith(color: Colors.black),
+              ),
+            ),
+            Padding(
+              padding:
+                  EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Text(
+                getTranslated(context, Strings.ENTER_CODE_WE)!,
+                style: theme.textTheme.bodyText2!
+                    .copyWith(color:  Colors.black),
+              ),
+            ),
+
+            Container(
+              height: 150,
+              color: theme.backgroundColor,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Spacer(),
+                  EntryField(
+                    keyboardType: TextInputType.phone,
+                    maxLength: 4,
+                    controller: _otpController,
+                    label:
+                        getTranslated(context, Strings.ENTER_6_DIGIT)
+                                .toString() +
+                            " ${widget.otp}",
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 30,),
             !loading
-                ? Row(
-                    children: [
-                      Expanded(
-                        child: CustomButton(
-                          text: getTranslated(context, Strings.NOT_RECEIVED),
-                          onTap: () =>
-                              widget.verificationInteractor.notReceived(),
-                          color: theme.scaffoldBackgroundColor,
-                          textColor: theme.primaryColor,
-                        ),
-                      ),
-                      Expanded(
-                        child: CustomButton(
-                          onTap: () {
-                            if (_otpController.text == "" ||
-                                _otpController.text.length != 4) {
-                              UI.setSnackBar("Please Enter Valid Otp", context);
-                              return;
-                            }
-                            if (_otpController.text != widget.otp) {
-                              UI.setSnackBar("Wrong Otp", context);
-                              return;
-                            }
-                            setState(() {
-                              loading = true;
-                            });
-                            loginUser();
-                          },
-                        ),
-                      ),
-                    ],
-                  )
+                ? Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // CustomButton(
+                //
+                //   text: getTranslated(context, Strings.NOT_RECEIVED),
+                //   onTap: () =>
+                //       widget.verificationInteractor.notReceived(),
+                //   color: theme.scaffoldBackgroundColor,
+                //   textColor: theme.primaryColor,
+                // ),
+                CustomButton(
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: () {
+                    if (_otpController.text == "" ||
+                        _otpController.text.length != 4) {
+                      UI.setSnackBar("Please Enter Valid Otp", context);
+                      return;
+                    }
+                    if (_otpController.text != widget.otp) {
+                      UI.setSnackBar("Wrong Otp", context);
+                      return;
+                    }
+                    setState(() {
+                      loading = true;
+                    });
+                    loginUser();
+                  },
+                ),
+              ],
+            )
                 : Container(
-                    width: 50,
-                    child: Center(child: CircularProgressIndicator())),
+                width: 50,
+                child: Center(child: CircularProgressIndicator())),
+
           ],
         ),
-        beginOffset: Offset(0, 0.3),
-        endOffset: Offset(0, 0),
-        slideCurve: Curves.linearToEaseOut,
       ),
     );
   }

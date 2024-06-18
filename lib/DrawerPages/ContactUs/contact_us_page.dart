@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:animation_wrappers/animation_wrappers.dart';
 import 'package:flutter/material.dart';
+import 'package:why_taxi_driver/utils/colors.dart';
 import 'package:why_taxi_driver/utils/new_utils/ui.dart';
 import 'package:flutter/widgets.dart';
 import 'package:why_taxi_driver/Components/custom_button.dart';
@@ -72,15 +73,17 @@ class _ContactUsPageState extends State<ContactUsPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     AppBar(
+                      centerTitle: true,
                       backgroundColor: AppTheme.primaryColor,
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 24),
-                      child: Text(
-                        getTranslated(context, "CONTACT_US")!,
-                        style: theme.textTheme.headline4,
+                      title:  Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          getTranslated(context, "CONTACT_US")!,
+                          style: TextStyle(color: MyColorName.colorBg2,fontSize: 20),
+                        ),
                       ),
                     ),
+
                     /* Padding(
                       padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       child: Text(

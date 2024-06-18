@@ -106,6 +106,7 @@ class _MyRidesPageState extends State<MyRidesPage> {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
+          centerTitle: true,
           leading: IconButton(
             onPressed: () {
               Navigator.pop(context, true);

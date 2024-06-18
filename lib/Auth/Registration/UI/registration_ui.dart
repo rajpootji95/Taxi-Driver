@@ -191,10 +191,25 @@ class _RegistrationUIState extends State<RegistrationUI> {
       DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
   Future<void> selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: startDate,
-        firstDate: DateTime(1900),
-        lastDate: DateTime.now());
+      context: context,
+      initialDate: startDate,
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            primaryColor: MyColorName.primaryLite, // Header background color
+            hintColor: MyColorName.primaryLite,  // Header text and indicator color
+            colorScheme: ColorScheme.light(primary: MyColorName.primaryLite),
+            buttonTheme: ButtonThemeData(
+                textTheme: ButtonTextTheme.primary
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
     if (picked != null) {
       setState(() {
         startDate = picked;
@@ -202,6 +217,7 @@ class _RegistrationUIState extends State<RegistrationUI> {
       });
     }
   }
+
 
   PersistentBottomSheetController? persistentBottomSheetController2;
   showBottom2() async {
@@ -258,6 +274,14 @@ class _RegistrationUIState extends State<RegistrationUI> {
     var theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
+        title:  Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24),
+          child: Text(
+            getTranslated(context, Strings.SIGN_UP_NOW)!,
+            style: TextStyle(color: MyColorName.colorBg2,fontSize: 20)
+          ),
+        ),
         backgroundColor: AppTheme.primaryColor,
       ),
       key: scaffoldKey,
@@ -268,18 +292,13 @@ class _RegistrationUIState extends State<RegistrationUI> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                
                 Stack(
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 24),
-                          child: Text(
-                            getTranslated(context, Strings.SIGN_UP_NOW)!,
-                            style: theme.textTheme.headline4,
-                          ),
-                        ),
+
                         Padding(
                           padding: EdgeInsets.symmetric(
                               horizontal: 24, vertical: 16),
@@ -665,8 +684,10 @@ class _RegistrationUIState extends State<RegistrationUI> {
       ),
       bottomNavigationBar: !loading
           ? Container(
-              height: 60,
+              
+              height: 70,
               child: CustomButton(
+                borderRadius: BorderRadius.circular(10),
                 text: getTranslated(context, Strings.SIGN_UP),
                 onTap: () {
                   if (mobileCon.text == "" || mobileCon.text.length != 10) {

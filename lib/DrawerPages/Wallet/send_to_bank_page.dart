@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:animation_wrappers/animation_wrappers.dart';
 import 'package:flutter/material.dart';
+import 'package:why_taxi_driver/utils/colors.dart';
 import 'package:why_taxi_driver/utils/new_utils/ui.dart';
 import 'package:flutter/services.dart';
 import 'package:why_taxi_driver/Components/custom_button.dart';
@@ -162,15 +163,17 @@ class _SendToBankPageState extends State<SendToBankPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     AppBar(
+                        centerTitle: true,
                       leading: IconButton(
                         icon: Icon(
                           Icons.arrow_back,
-                          color: Colors.black,
+                          color: Colors.white,
                         ),
                         onPressed: () {
                           Navigator.pop(context, true);
                         },
                       ),
+                      title: Text("Bank Details",style: TextStyle(color: MyColorName.colorBg2,fontSize: 20),),
                     ),
                     Padding(
                       padding:
@@ -259,6 +262,7 @@ class _SendToBankPageState extends State<SendToBankPage> {
               end: 0,
               child: !saveStatus
                   ? CustomButton(
+                borderRadius: BorderRadius.circular(10),
                       text: getTranslated(context, "SUBMIT"),
                       onTap: () {
                         if (_bankNameController.text == "") {

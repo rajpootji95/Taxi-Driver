@@ -73,23 +73,25 @@ class _ReviewsPageState extends State<ReviewsPage> {
       backgroundColor: Colors.white,
       //drawer: AppDrawer(false),
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: AppTheme.primaryColor,
+        title: Padding(
+          padding:
+          const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+          child: Text(
+            getTranslated(context,Strings.CURRENT_RATINGS)!.toUpperCase(),
+            style: Theme.of(context)
+                .textTheme
+                .bodyText1!
+                .copyWith(fontSize: 18,color: MyColorName.colorBg2),
+          ),
+        ),
       ),
       body:  FadedSlideAnimation(
             child:
         ListView(
           children: [
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-              child: Text(
-                getTranslated(context,Strings.CURRENT_RATINGS)!.toUpperCase(),
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyText1!
-                    .copyWith(fontSize: 18),
-              ),
-            ),
+          SizedBox(height: 30),
             Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0.0),
@@ -109,7 +111,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
                           style: Theme.of(context)
                               .textTheme
                               .bodyText2!
-                              .copyWith(fontSize: 24),
+                              .copyWith(fontSize: 24,color: MyColorName.colorBg2),
                         ),
                         SizedBox(width: 8),
                         Icon(

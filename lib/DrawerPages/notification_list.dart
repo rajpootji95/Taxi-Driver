@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:animation_wrappers/animation_wrappers.dart';
 import 'package:flutter/material.dart';
+import 'package:why_taxi_driver/utils/colors.dart';
 import 'package:why_taxi_driver/utils/new_utils/ui.dart';
 
 import 'package:why_taxi_driver/Theme/style.dart';
@@ -157,10 +158,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
+          centerTitle: true,
           backgroundColor: AppTheme.primaryColor,
           title: Text(
             getTranslated(context, "Notification")!,
-            style: theme.textTheme.headline4,
+            style: TextStyle(fontSize: 20,color: MyColorName.colorBg2),
           ),
         ),
         body: FadedSlideAnimation(

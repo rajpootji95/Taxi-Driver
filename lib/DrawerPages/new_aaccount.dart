@@ -273,6 +273,7 @@ class _AccountPageState extends State<AccountPage>
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
+          centerTitle: true,
           backgroundColor: AppTheme.primaryColor,
           leading: IconButton(
             onPressed: () {
@@ -299,10 +300,11 @@ class _AccountPageState extends State<AccountPage>
             isScrollable: true,
             padding: EdgeInsets.all(5),
             indicator: BoxDecoration(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(10),
-                  topRight: Radius.circular(10),
-                ),
+                // borderRadius: BorderRadius.only(
+                //   topLeft: Radius.circular(10),
+                //   topRight: Radius.circular(10),
+                // ),
+              borderRadius: BorderRadius.circular(10),
                 color: Colors.white),
             tabs: [
               Tab(
